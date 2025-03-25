@@ -4,7 +4,7 @@ export default class HolbertonCourse {
       throw new TypeError('Name must be a string');
     }
 
-    if (typeof length !== 'number' || Number.isNan(length) || length < 0) {
+    if (typeof length !== 'number' || Number.isNaN(length) || length < 0) {
       throw new TypeError('Length must be a number');
     }
 
