@@ -25,6 +25,10 @@ module.exports = {
       'LabeledStatement',
       'WithStatement',
     ],
+    "no-underscore-dangle": [
+      "error",
+      { "allowAfterThis": true }
+    ]
   },
   overrides:[
     {
