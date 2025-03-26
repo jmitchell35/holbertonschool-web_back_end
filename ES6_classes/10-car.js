@@ -58,6 +58,8 @@ export default class Car {
     const Constructor = this.constructor;
     const newCar = Object.create(Constructor.prototype);
 
+    newCar.id = Symbol('id');
+
     Object.defineProperties(newCar, {
       _brand: { value: undefined, writable: true },
       _motor: { value: undefined, writable: true },
