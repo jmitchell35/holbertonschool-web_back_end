@@ -57,13 +57,16 @@ export default class Car {
   cloneCar() {
     const Constructor = this.constructor;
     const newCar = Object.create(Constructor.prototype);
+    // eslint-disable-next-line no-underscore-dangle
+    newCar._brand = undefined;
+    // eslint-disable-next-line no-underscore-dangle
+    newCar._motor = undefined;
+    // eslint-disable-next-line no-underscore-dangle
+    newCar._color = undefined;
 
-    newCar.id = Symbol('id');
-
-    Object.defineProperties(newCar, {
-      _brand: { value: undefined, writable: true },
-      _motor: { value: undefined, writable: true },
-      _color: { value: undefined, writable: true },
+    Object.defineProperty(newCar, 'id', {
+      value: Symbol('id'),
+      enumerable: false  // This makes it invisible in console.log
     });
 
     return newCar;
