@@ -43,11 +43,11 @@ export default class Pricing {
   }
 
   static convertPrice(amount, conversionRate) {
-    if (typeof amount !== 'number' || Number.isNan(amount) || amount < 0) {
+    if (typeof amount !== 'number' || Number.isNaN(amount) || amount < 0) {
       throw new TypeError('Amount must be a number');
     }
 
-    if (typeof conversionRate !== 'number' || Number.isNan(conversionRate) || conversionRate < 0) {
+    if (typeof conversionRate !== 'number' || Number.isNaN(conversionRate) || conversionRate < 0) {
       throw new TypeError('Amount must be a number');
     }
 
