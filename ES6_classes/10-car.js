@@ -32,11 +32,14 @@ export default class Car {
   cloneCar() {
     const Constructor = this.constructor;
     const newCar = Object.create(Constructor.prototype);
-    
+
+    // eslint-disable-next-line no-underscore-dangle
     newCar._brand = undefined;
+    // eslint-disable-next-line no-underscore-dangle
     newCar._motor = undefined;
+    // eslint-disable-next-line no-underscore-dangle
     newCar._color = undefined;
-    
+
     return newCar;
   }
 }
