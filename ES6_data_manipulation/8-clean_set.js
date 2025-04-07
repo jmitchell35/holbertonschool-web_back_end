@@ -1,6 +1,6 @@
 export default function cleanSet(set, startString) {
-  // Empty string if startString is empty
-  if (!startString || startString === '') {
+  // Empty string if startString is absent, empty, not string
+  if (!startString || typeof startString !== 'string' || startString === '') {
     return '';
   }
 
