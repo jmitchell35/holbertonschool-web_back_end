@@ -1,4 +1,9 @@
 export default function cleanSet(set, startString) {
+  // Empty string if startString is empty
+  if (!startString || startString === '') {
+    return '';
+  }
+
   return [...set]  // Convert Set to array with constructor, method chaining structure
     .filter(value => 
       typeof value === 'string' && value.startsWith(startString)
