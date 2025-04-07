@@ -1,5 +1,5 @@
 export default function updateStudentGradeByCity(stdList, city, newGrades) {
-  return stdList // method chaining struction
+  return stdList // method chaining structure
     .filter((student) => student.location === city) // first step : filter by location
     .map((student) => { // second : map with custom extended callback function
       const gradeObj = newGrades.find((grade) => grade.studentId === student.id); // for each std
