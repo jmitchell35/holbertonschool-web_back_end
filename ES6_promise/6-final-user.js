@@ -11,8 +11,8 @@ export default function handleProfileSignup(firstName, lastName, fileName) {
       (results) => results.map((result) => ({ // results is an arr of results we map into iterable
         status: result.status, // Unifies obj structure for fulfilled and rejected promises
         value: result.status === 'fulfilled' // hence the status check
-        ? result.value // fulfilled promise output (status, value pairs)
-        : result.reason, // rejected promise output (status, reason pairs)
+          ? result.value // fulfilled promise output (status, value pairs)
+          : result.reason, // rejected promise output (status, reason pairs)
       })),
     );
 }
