@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from typing import Sequence, List, Tuple
 """
 Sequence analysis module.
 
@@ -7,6 +6,8 @@ This module provides utility functions for analyzing sequences (like lists,
 strings, tuples) and extracting information about their structure and
 properties.
 """
+
+from typing import Sequence, List, Tuple
 
 
 def element_length(lst: List[Sequence]) -> List[Tuple[Sequence, int]]:
