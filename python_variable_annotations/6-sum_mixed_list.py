@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from typing import Union
 """
 Mixed type list processing module.
 
@@ -7,8 +6,10 @@ This module provides utility functions for performing mathematical operations
 on lists containing mixed numeric types (integers and floats).
 """
 
+from typing import Union, List
 
-def sum_mixed_list(mxd_list: list[Union[int, float]]) -> float:
+
+def sum_mixed_list(mxd_list: List[Union[int, float]]) -> float:
     """
     Calculate the sum of a list containing both integers and floating-point
     numbers.
