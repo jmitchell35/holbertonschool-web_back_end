@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-from typing import List
 """
 List processing module.
 
 This module provides utility functions for performing mathematical operations
 on lists of numeric values.
 """
+
+from typing import List
 
 
 def sum_list(input_list: List[float]) -> float:
