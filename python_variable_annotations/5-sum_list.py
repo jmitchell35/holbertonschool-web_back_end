@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from typing import List
 """
 List processing module.
 
@@ -7,7 +8,7 @@ on lists of numeric values.
 """
 
 
-def sum_list(input_list: list[float]) -> float:
+def sum_list(input_list: List[float]) -> float:
     """
     Calculate the sum of all floating-point numbers in a list.
 
