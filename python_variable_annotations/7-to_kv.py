@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from typing import Union
 """
 Key-value transformation module.
 
@@ -7,8 +6,10 @@ This module provides utility functions for creating and transforming key-value
 pairs, with specific numeric operations applied to the values.
 """
 
+from typing import Union, Tuple
 
-def to_kv(k: str, v: Union[int, float]) -> tuple[str, float]:
+
+def to_kv(k: str, v: Union[int, float]) -> Tuple[str, float]:
     """
     Create a tuple with a string key and the square of a numeric value.
 
