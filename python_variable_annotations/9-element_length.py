@@ -7,10 +7,10 @@ strings, tuples) and extracting information about their structure and
 properties.
 """
 
-from typing import Sequence, List, Tuple
+from typing import Sequence, List, Tuple, Iterable
 
 
-def element_length(lst: List[Sequence]) -> List[Tuple[Sequence, int]]:
+def element_length(lst: Iterable[Sequence]) -> List[Tuple[Sequence, int]]:
     """
     Calculate the length of each sequence element in a list.
 
