@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-from typing import Callable
 """
 Higher-order function module.
 
 This module provides utilities for creating function factories,
 particularly focusing on mathematical operations like multiplication.
 """
+
+from typing import Callable
 
 
 def make_multiplier(multiplier: float) -> Callable[[float], float]:
