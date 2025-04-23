@@ -9,11 +9,11 @@ def measure_time(n: int, max_delay: int) -> float:
     """
     Measures the total execution time for wait_n(n, max_delay) and returns
     the average time per operation.
-    
+
     Args:
         n: Number of times to spawn wait_random.
         max_delay: Maximum delay in seconds.
-        
+
     Returns:
         Average time per operation.
     """
