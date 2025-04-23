@@ -18,9 +18,8 @@ async def task_wait_n(n: int, max_delay: int) -> List[float]:
     Returns:
         List of all the delays in ascending order.
     """
-    # List of scheduled tasks here, instead of unscheduled coroutines.
-    tasks = [asyncio.create_task(
-        task_wait_random(max_delay)) for _ in range(n)]
+    # task_wait_random returns tasks directly => no need to create them
+    tasks = [task_wait_random(max_delay) for _ in range(n)]
 
     delays = []
     # Await in comprehension can be problematic => hence below
