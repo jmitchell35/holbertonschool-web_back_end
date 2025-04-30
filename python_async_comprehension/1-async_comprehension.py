@@ -6,10 +6,11 @@ This module builds on the async_generator function to provide higher-level
 asynchronous collection operations.
 """
 
+from typing import List
 async_generator = __import__('0-async_generator').async_generator
 
 
-async def async_comprehension():
+async def async_comprehension() -> List[float]:
     """
     Collect values from an async generator using async comprehension.
 
