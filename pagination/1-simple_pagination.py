@@ -32,7 +32,7 @@ class Server:
     def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
         """
         Retrieve a specific page of data from the dataset.
-        
+
         Args:
             page (int, optional): The page number to retrieve (1-indexed).
             Defaults to 1.
@@ -48,7 +48,7 @@ class Server:
         """
         assert (isinstance(page, int) and
                 isinstance(page_size, int) and
-                page > 0 and 
+                page > 0 and
                 page_size > 0)
 
         reading_range = index_range(page, page_size)
@@ -58,6 +58,7 @@ class Server:
             return dataset[reading_range[0]:reading_range[1]]
         except IndexError:
             return []
+
 
 def index_range(page: int, page_size: int) -> Tuple[int, int]:
     """
