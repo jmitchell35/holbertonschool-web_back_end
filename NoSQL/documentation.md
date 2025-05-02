@@ -31,6 +31,8 @@
    - [Setting up PyMongo](#setup-pymongo)
    - [Python CRUD Operations](#python-crud)
    - [Advanced Python Operations](#python-advanced)
+   - [MongoDB and Python Frameworks](#python-frameworks)
+   - [Python MongoDB Best Practices](#python-best-practices)
 8. [Schema Design and Best Practices](#schema-design)
    - [Data Modeling Patterns](#data-modeling)
    - [Performance Optimization](#performance)
@@ -986,7 +988,48 @@ db.users.find({ status: "active" }).count()
 db.users.find().pretty()
 ```
 
-#### 9. Updated Cursor Methods in Modern MongoDB
+#### 9. Method Chaining
+
+MongoDB supports method chaining, allowing you to combine multiple operations in a single statement. This is particularly useful for building complex queries step by step:
+
+```javascript
+// Find, limit, and sort in one chain
+db.users.find({ status: "active" }).limit(5).sort({ name: 1 })
+
+// Find and count
+db.users.find({ age: { $gt: 30 } }).count()
+
+// Find, skip, limit, and sort (for pagination)
+db.users.find().skip(20).limit(10).sort({ created_at: -1 })
+
+// Find, filter, and get specific fields
+db.users.find({ status: "active" })
+        .sort({ joined_date: -1 })
+        .limit(5)
+        .project({ name: 1, email: 1, _id: 0 })
+
+// Finding specific ranges with chained comparison operators
+db.users.find({ age: { $gt: 20, $lt: 30 } })
+
+// Skip and limit for paginated results
+const page = 2;
+const pageSize = 10;
+db.users.find().skip((page - 1) * pageSize).limit(pageSize)
+```
+
+Important notes about method chaining:
+
+1. **Order matters**: Some methods like `sort()`, `skip()`, and `limit()` can produce different results when ordered differently.
+
+2. **Terminal operations**: Some methods like `count()`, `toArray()`, and `forEach()` execute the query immediately and cannot be followed by other cursor methods.
+
+3. **Non-terminal operations**: Methods like `sort()`, `limit()`, and `skip()` modify the cursor but don't execute it, allowing further chaining.
+
+4. **Cursor exhaustion**: Once a cursor is "exhausted" (fully iterated), it cannot be reused.
+
+5. **Memory considerations**: Methods like `toArray()` load all results into memory, which can be problematic for large result sets.
+
+#### 10. Updated Cursor Methods in Modern MongoDB
 
 In recent MongoDB versions (post 4.4), several cursor methods have been enhanced or added:
 
@@ -1062,6 +1105,36 @@ db.users.updateMany(
 )
 ```
 
+**Legacy Update Syntax (MongoDB 3.6 and earlier)**:
+```javascript
+// Update a single document (default behavior)
+db.users.update(
+    { name: "John Doe" },
+    { $set: { age: 31 } }
+)
+
+// Update multiple documents with multi:true flag
+db.users.update(
+    { age: { $lt: 30 } },
+    { $set: { status: "young" } },
+    { multi: true }
+)
+
+// Upsert with the legacy syntax
+db.users.update(
+    { email: "newuser@example.com" },
+    { $set: { name: "New User", status: "active" } },
+    { upsert: true }
+)
+
+// Combined multi and upsert options
+db.users.update(
+    { status: "inactive" },
+    { $set: { status: "archived" } },
+    { multi: true, upsert: true }
+)
+```
+
 **Update operators**:
 ```javascript
 // $set - set field value
@@ -1127,6 +1200,22 @@ db.users.deleteMany({ age: { $lt: 30 } })
 
 // Delete all documents in a collection
 db.users.deleteMany({})
+```
+
+**Legacy Delete Syntax (MongoDB 3.6 and earlier)**:
+```javascript
+// Remove a single document
+db.users.remove({ name: "John Doe" }, { justOne: true })
+
+// Remove multiple documents
+db.users.remove({ age: { $lt: 30 } })
+
+// Remove all documents in a collection
+db.users.remove({})
+
+// For better performance when removing all documents,
+// dropping the collection is recommended
+db.users.drop()
 ```
 
 <a name="advanced-operations"></a>
@@ -1502,90 +1591,468 @@ result = collection.delete_many({'age': {'$lt': 25}})
 print(f"Deleted {result.deleted_count} document(s)")
 ```
 
-<a name="python-advanced"></a>
-### Advanced Python Operations
+<a name="python-frameworks"></a>
+### MongoDB and Python Frameworks
 
-**Aggregation**:
+Python offers several frameworks and libraries that integrate well with MongoDB, making development more efficient and structured.
+
+#### 1. ODM Libraries (Object-Document Mappers)
+
+**MongoEngine**:
 ```python
-# Basic aggregation
-pipeline = [
-    # Stage 1: Match documents
-    {'$match': {'age': {'$gt': 25}}},
-    
-    # Stage 2: Group by field and calculate
-    {'$group': {
-        '_id': '$tags',
-        'count': {'$sum': 1},
-        'avg_age': {'$avg': '$age'}
-    }},
-    
-    # Stage 3: Sort by count
-    {'$sort': {'count': -1}}
-]
+# Install: pip install mongoengine
 
-results = collection.aggregate(pipeline)
-for result in results:
-    print(result)
+from mongoengine import Document, StringField, IntField, connect
+
+# Connect to database
+connect('mydatabase')
+
+# Define a model
+class User(Document):
+    name = StringField(required=True, max_length=100)
+    email = StringField(required=True, unique=True)
+    age = IntField(min_value=0)
+    
+    meta = {
+        'collection': 'users',        # Collection name
+        'indexes': ['email', 'name'],  # Fields to index
+        'ordering': ['-age']          # Default sorting
+    }
+
+# Create a user
+user = User(name="John Doe", email="john@example.com", age=30)
+user.save()
+
+# Find users
+users = User.objects(age__gte=18)  # All users 18 or older
+for user in users:
+    print(f"{user.name}: {user.email}")
 ```
 
-**Indexing**:
+**PyMODM**:
 ```python
-# Create index
-collection.create_index([('email', pymongo.ASCENDING)], unique=True)
+# Install: pip install pymodm
 
-# Create compound index
-collection.create_index([
-    ('age', pymongo.DESCENDING),
-    ('name', pymongo.ASCENDING)
-])
+from pymodm import MongoModel, fields, connect
 
-# Create text index
-collection.create_index([('description', 'text')])
+# Connect to database
+connect('mongodb://localhost:27017/mydatabase')
 
-# List all indexes
-indexes = collection.list_indexes()
-for index in indexes:
-    print(index)
+# Define a model
+class User(MongoModel):
+    name = fields.CharField(required=True)
+    email = fields.EmailField(required=True)
+    age = fields.IntegerField(min_value=0)
+    
+    class Meta:
+        collection_name = 'users'
+        final = True
 
-# Drop index
-collection.drop_index('email_1')
+# Create a user
+user = User('John Doe', 'john@example.com', 30)
+user.save()
+
+# Find users
+from pymodm.queryset import QuerySet
+users = QuerySet(User).raw({'age': {'$gte': 18}})
+for user in users:
+    print(f"{user.name}: {user.email}")
 ```
 
-**Transactions**:
+#### 2. Web Frameworks
+
+**Flask with PyMongo**:
 ```python
-# Start a session
-with client.start_session() as session:
-    # Start a transaction
-    with session.start_transaction():
-        # Get collection references
-        accounts = db.accounts
-        transfers = db.transfers
-        
-        # Perform operations inside the transaction
-        accounts.update_one(
-            {'_id': 'account1'},
-            {'$inc': {'balance': -100}},
-            session=session
+# Install: pip install Flask flask-pymongo
+
+from flask import Flask, jsonify, request
+from flask_pymongo import PyMongo
+
+app = Flask(__name__)
+app.config["MONGO_URI"] = "mongodb://localhost:27017/mydatabase"
+mongo = PyMongo(app)
+
+@app.route('/users', methods=['GET'])
+def get_users():
+    users = list(mongo.db.users.find({}, {'_id': 0}))
+    return jsonify(users)
+
+@app.route('/users', methods=['POST'])
+def add_user():
+    user = {
+        'name': request.json['name'],
+        'email': request.json['email'],
+        'age': request.json['age']
+    }
+    mongo.db.users.insert_one(user)
+    return jsonify({'message': 'User added successfully'})
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+**Django with Djongo**:
+```python
+# Install: pip install Django djongo
+
+# settings.py
+DATABASES = {
+    'default': {
+        'ENGINE': 'djongo',
+        'NAME': 'mydatabase',
+        'CLIENT': {
+            'host': 'localhost',
+            'port': 27017,
+        }
+    }
+}
+
+# models.py
+from django.db import models
+
+class User(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    age = models.IntegerField()
+    
+    def __str__(self):
+        return self.name
+
+# views.py
+from django.shortcuts import render
+from django.http import JsonResponse
+from .models import User
+
+def get_users(request):
+    users = list(User.objects.filter(age__gte=18).values())
+    return JsonResponse({'users': users})
+```
+
+**FastAPI with Motor (Async MongoDB)**:
+```python
+# Install: pip install fastapi motor uvicorn
+
+from fastapi import FastAPI, HTTPException
+from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import BaseModel
+import asyncio
+
+app = FastAPI()
+
+# Model
+class User(BaseModel):
+    name: str
+    email: str
+    age: int
+
+# Connect to MongoDB
+@app.on_event("startup")
+async def startup_db_client():
+    app.mongodb_client = AsyncIOMotorClient("mongodb://localhost:27017")
+    app.mongodb = app.mongodb_client["mydatabase"]
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    app.mongodb_client.close()
+
+# Routes
+@app.get("/users")
+async def get_users():
+    users = await app.mongodb["users"].find().to_list(length=100)
+    return {"users": users}
+
+@app.post("/users")
+async def add_user(user: User):
+    new_user = user.dict()
+    await app.mongodb["users"].insert_one(new_user)
+    return {"message": "User added successfully"}
+```
+
+#### 3. Asynchronous MongoDB with Python
+
+**Motor (Async PyMongo)**:
+```python
+# Install: pip install motor
+
+import motor.motor_asyncio
+import asyncio
+
+# Connect to MongoDB
+client = motor.motor_asyncio.AsyncIOMotorClient('mongodb://localhost:27017')
+db = client.mydatabase
+collection = db.users
+
+async def insert_user():
+    result = await collection.insert_one({
+        'name': 'John Doe',
+        'email': 'john@example.com',
+        'age': 30
+    })
+    return result.inserted_id
+
+async def find_users():
+    cursor = collection.find({'age': {'$gte': 18}})
+    async for document in cursor:
+        print(document)
+
+async def main():
+    # Insert a user
+    user_id = await insert_user()
+    print(f"Inserted user with ID: {user_id}")
+    
+    # Find users
+    await find_users()
+
+# Run the async function
+asyncio.run(main())
+```
+
+<a name="python-best-practices"></a>
+### Python MongoDB Best Practices
+
+When working with MongoDB in Python, following these best practices will help you create efficient, maintainable, and secure applications:
+
+#### 1. Connection Management
+
+```python
+# Create a connection pool
+client = MongoClient(
+    'mongodb://localhost:27017/',
+    maxPoolSize=50,                # Maximum concurrent connections
+    waitQueueTimeoutMS=2500,       # How long to wait for a connection
+    connectTimeoutMS=2500,         # How long to wait for server connection
+    serverSelectionTimeoutMS=2500  # How long to wait for server selection
+)
+
+# Properly close connections when done
+def cleanup():
+    client.close()
+
+# Keep connections alive for long-running applications
+client = MongoClient(
+    'mongodb://localhost:27017/',
+    socketTimeoutMS=None,  # Disable socket timeout
+    connectTimeoutMS=30000  # 30 second connection timeout
+)
+```
+
+#### 2. Error Handling and Retry Logic
+
+```python
+from pymongo.errors import ConnectionFailure, OperationFailure
+import time
+
+def execute_with_retry(func, max_retries=3, retry_delay=1):
+    retries = 0
+    while retries < max_retries:
+        try:
+            return func()
+        except (ConnectionFailure, OperationFailure) as e:
+            retries += 1
+            if retries == max_retries:
+                raise
+            time.sleep(retry_delay)
+            retry_delay *= 2  # Exponential backoff
+
+# Usage
+def insert_document():
+    return db.users.insert_one({"name": "John"})
+
+result = execute_with_retry(insert_document)
+```
+
+#### 3. Data Validation
+
+```python
+# Simple validation
+def insert_user(user_data):
+    required_fields = ['name', 'email', 'age']
+    
+    # Check for required fields
+    for field in required_fields:
+        if field not in user_data:
+            raise ValueError(f"Missing required field: {field}")
+    
+    # Validate field types
+    if not isinstance(user_data['name'], str):
+        raise TypeError("Name must be a string")
+    
+    if not isinstance(user_data['age'], int) or user_data['age'] < 0:
+        raise ValueError("Age must be a positive integer")
+    
+    # Insert validated data
+    return db.users.insert_one(user_data)
+
+# Using Pydantic for validation
+from pydantic import BaseModel, EmailStr, validator
+
+class User(BaseModel):
+    name: str
+    email: EmailStr
+    age: int
+    
+    @validator('age')
+    def age_must_be_positive(cls, v):
+        if v < 0:
+            raise ValueError('Age must be positive')
+        return v
+
+def insert_validated_user(user_data):
+    # This will raise validation error if data is invalid
+    valid_user = User(**user_data)
+    return db.users.insert_one(valid_user.dict())
+```
+
+#### 4. Bulk Operations for Better Performance
+
+```python
+# Efficient bulk inserts
+def bulk_insert_users(users_list):
+    if not users_list:
+        return
+    
+    # Create bulk operation
+    result = db.users.insert_many(users_list)
+    return result.inserted_ids
+
+# Bulk updates
+from pymongo import UpdateOne
+
+def bulk_update_users(updates_list):
+    if not updates_list:
+        return
+    
+    # Create list of update operations
+    operations = [
+        UpdateOne(
+            {'_id': update['user_id']},
+            {'$set': update['new_data']}
         )
-        
-        accounts.update_one(
-            {'_id': 'account2'},
-            {'$inc': {'balance': 100}},
-            session=session
+        for update in updates_list
+    ]
+    
+    # Execute bulk update
+    result = db.users.bulk_write(operations)
+    return result
+```
+
+#### 5. Indexing Strategies
+
+```python
+# Create indexes for commonly queried fields
+db.users.create_index([('email', 1)], unique=True)
+db.users.create_index([('age', 1)])
+
+# Compound index for queries on multiple fields
+db.users.create_index([('age', 1), ('name', 1)])
+
+# Text index for text search
+db.articles.create_index([('content', 'text'), ('title', 'text')])
+
+# TTL index for automatic document expiration
+from datetime import datetime, timedelta
+db.sessions.create_index([('created_at', 1)], expireAfterSeconds=3600)  # Expire after 1 hour
+```
+
+#### 6. Query Optimization
+
+```python
+# Use projection to retrieve only needed fields
+users = db.users.find(
+    {'age': {'$gte': 18}},
+    {'name': 1, 'email': 1, '_id': 0}  # Only return name and email
+)
+
+# Use explain() to analyze query performance
+explain_result = db.users.find({'age': {'$gt': 25}}).explain('executionStats')
+print(f"Execution time: {explain_result['executionStats']['executionTimeMillis']}ms")
+print(f"Documents examined: {explain_result['executionStats']['totalDocsExamined']}")
+
+# Limit result set size
+recent_users = db.users.find().sort('created_at', -1).limit(10)
+
+# Use covered queries (where index contains all fields needed)
+db.users.create_index([('email', 1), ('name', 1)])
+covered_query = db.users.find(
+    {'email': 'john@example.com'},
+    {'email': 1, 'name': 1, '_id': 0}
+)
+```
+
+#### 7. Security Considerations
+
+```python
+# Always use connection strings with authentication
+client = MongoClient('mongodb://username:password@localhost:27017/mydatabase')
+
+# Use environment variables for sensitive information
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Load variables from .env file
+client = MongoClient(os.environ.get('MONGO_URI'))
+
+# Sanitize and validate user input before queries
+def find_user_by_username(username):
+    # Validate username format
+    if not isinstance(username, str) or not username.isalnum():
+        raise ValueError("Invalid username format")
+    
+    return db.users.find_one({'username': username})
+```
+
+#### 8. Migration and Schema Evolution
+
+```python
+# Simple migration script
+def migrate_users_add_status():
+    # Find all users without 'status' field
+    users_to_update = db.users.find({'status': {'$exists': False}})
+    
+    # Add default status
+    for user in users_to_update:
+        db.users.update_one(
+            {'_id': user['_id']},
+            {'$set': {'status': 'active'}}
         )
-        
-        transfers.insert_one(
-            {
-                'from': 'account1',
-                'to': 'account2',
-                'amount': 100,
-                'date': datetime.now()
-            },
-            session=session
-        )
-        
-        # The transaction will automatically be committed
-        # If an exception occurs, it will automatically be aborted
+    
+    print("Migration completed")
+
+# Using pymongo-migrate for more complex migrations
+# pip install pymongo-migrate
+# Then create migrations:
+# pymongo-migrate create add_user_status
+```
+
+#### 9. Testing with MongoDB
+
+```python
+# Using pytest with mongomock
+# pip install pytest mongomock
+
+import pytest
+import mongomock
+
+@pytest.fixture
+def mock_mongo_client():
+    return mongomock.MongoClient()
+
+@pytest.fixture
+def mock_db(mock_mongo_client):
+    return mock_mongo_client.db
+
+def test_user_insertion(mock_db):
+    # Mock data
+    user = {'name': 'Test User', 'email': 'test@example.com', 'age': 25}
+    
+    # Insert into mock DB
+    result = mock_db.users.insert_one(user)
+    assert result.acknowledged
+    
+    # Check if user was inserted
+    found_user = mock_db.users.find_one({'_id': result.inserted_id})
+    assert found_user['name'] == 'Test User'
+    assert found_user['email'] == 'test@example.com'
 ```
 
 <a name="schema-design"></a>
