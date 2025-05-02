@@ -188,25 +188,7 @@ MongoDB architecture consists of the following components:
 ### Installation
 
 **Linux (Ubuntu)**:
-```bash
-# Import MongoDB public GPG key
-wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
-
-# Create a list file for MongoDB
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-
-# Reload local package database
-sudo apt-get update
-
-# Install MongoDB packages
-sudo apt-get install -y mongodb-org
-
-# Start MongoDB service
-sudo systemctl start mongod
-
-# Verify service is running
-sudo systemctl status mongod
-```
+https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
 **macOS (with Homebrew)**:
 ```bash
