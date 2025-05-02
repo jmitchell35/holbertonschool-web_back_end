@@ -827,6 +827,218 @@ db.users.find({ age: { $gt: 25 } }).count()
 db.users.countDocuments()
 ```
 
+**Comprehensive Query Guide**:
+
+MongoDB offers powerful querying capabilities. Below is a comprehensive guide to querying documents in MongoDB 4.4 and beyond:
+
+#### Basic Find Syntax
+
+```javascript
+db.collection.find(query, projection)
+```
+
+Where:
+* `query`: The selection criteria (optional)
+* `projection`: Fields to return (optional)
+
+#### 1. Basic Equality Matching
+
+```javascript
+// Find all documents where name equals "John"
+db.users.find({ name: "John" })
+
+// Find all documents where age equals 30
+db.users.find({ age: 30 })
+```
+
+#### 2. Comparison Operators
+
+```javascript
+// Greater than
+db.users.find({ age: { $gt: 25 } })
+
+// Less than
+db.users.find({ age: { $lt: 30 } })
+
+// Greater than or equal to
+db.users.find({ age: { $gte: 25 } })
+
+// Less than or equal to
+db.users.find({ age: { $lte: 30 } })
+
+// Not equal to
+db.users.find({ status: { $ne: "inactive" } })
+
+// In array of values
+db.users.find({ status: { $in: ["active", "pending"] } })
+
+// Not in array of values
+db.users.find({ status: { $nin: ["deleted", "banned"] } })
+```
+
+#### 3. Logical Operators
+
+```javascript
+// AND - implicit when you provide multiple conditions
+db.users.find({ age: { $gt: 25 }, status: "active" })
+
+// Explicit AND
+db.users.find({ 
+  $and: [
+    { age: { $gt: 25 } },
+    { status: "active" }
+  ]
+})
+
+// OR
+db.users.find({ 
+  $or: [
+    { age: { $lt: 18 } },
+    { age: { $gt: 65 } }
+  ]
+})
+
+// NOT
+db.users.find({ age: { $not: { $gt: 25 } } })
+
+// NOR
+db.users.find({
+  $nor: [
+    { status: "inactive" },
+    { age: { $lt: 18 } }
+  ]
+})
+```
+
+#### 4. Element Operators
+
+```javascript
+// Field exists
+db.users.find({ email: { $exists: true } })
+
+// Field does not exist
+db.users.find({ phone: { $exists: false } })
+
+// Value is of specific type
+db.users.find({ age: { $type: "number" } })
+```
+
+#### 5. Array Operators
+
+```javascript
+// Array contains element
+db.users.find({ tags: "developer" })
+
+// Array contains all elements
+db.users.find({ tags: { $all: ["developer", "mongodb"] } })
+
+// Array element matches criteria
+db.users.find({ "scores.math": { $gt: 80 } })
+
+// Array size
+db.users.find({ tags: { $size: 3 } })
+
+// Element matches with $elemMatch
+db.users.find({
+  scores: {
+    $elemMatch: { subject: "math", score: { $gt: 80 } }
+  }
+})
+```
+
+#### 6. Text Search
+
+```javascript
+// Requires a text index to be created first
+db.collection.createIndex({ description: "text" })
+db.collection.find({ $text: { $search: "mongodb database" } })
+```
+
+#### 7. Projections (Returning Specific Fields)
+
+```javascript
+// Include only name and age fields (plus _id by default)
+db.users.find({ status: "active" }, { name: 1, age: 1 })
+
+// Exclude _id field
+db.users.find({ status: "active" }, { name: 1, age: 1, _id: 0 })
+
+// Exclude specific fields
+db.users.find({ status: "active" }, { password: 0, secretNotes: 0 })
+```
+
+#### 8. Query Methods for Controlling Results
+
+```javascript
+// Limit results
+db.users.find().limit(10)
+
+// Skip results (for pagination)
+db.users.find().skip(20).limit(10)
+
+// Sort results (1 for ascending, -1 for descending)
+db.users.find().sort({ age: -1, name: 1 })
+
+// Count matching documents
+db.users.find({ status: "active" }).count()
+
+// Pretty-print results
+db.users.find().pretty()
+```
+
+#### 9. Updated Cursor Methods in Modern MongoDB
+
+In recent MongoDB versions (post 4.4), several cursor methods have been enhanced or added:
+
+```javascript
+// Convert cursor to array (useful for further processing)
+db.users.find().toArray()
+
+// Iterate a cursor with forEach
+db.users.find().forEach(function(doc) {
+  print("User: " + doc.name);
+})
+
+// Check if cursor has more documents
+var cursor = db.users.find();
+while(cursor.hasNext()) {
+  var doc = cursor.next();
+  print(doc.name);
+}
+
+// Add cursor flags
+db.users.find().addCursorFlag("noCursorTimeout", true)
+
+// Set batch size (how many documents to return in each batch)
+db.users.find().batchSize(100)
+
+// Explain query execution plan
+db.users.find({ age: { $gt: 25 } }).explain("executionStats")
+
+// Set max time MS (timeout for query execution)
+db.users.find().maxTimeMS(1000)
+
+// Allow disk use for large sort operations
+db.users.find().sort({ name: 1 }).allowDiskUse(true)
+
+// Get cursor information
+var cursor = db.users.find();
+cursor.objsLeftInBatch()  // Documents left in current batch
+
+// Close a cursor explicitly (frees server resources)
+var cursor = db.users.find();
+cursor.close()
+```
+
+#### 10. MongoDB Shell vs. MongoDB Drivers
+
+Note that cursor behavior varies slightly between the MongoDB shell and language-specific drivers. For example, in most drivers:
+
+- Cursors implement an iterator interface
+- Cursors may be used in for-loops directly
+- Cursors typically close automatically when iteration is complete
+- Some methods might have slightly different names
+
 <a name="update-operations"></a>
 ### Update Operations
 
