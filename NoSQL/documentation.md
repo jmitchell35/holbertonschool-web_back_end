@@ -1,4 +1,82 @@
-# MongoDB: The Comprehensive Guide
+<a name="schema-design"></a>
+
+<a name="mongodb-object-types"></a>
+## 8. MongoDB Object Types
+
+MongoDB stores data in BSON (Binary JSON) format, which extends the JSON model to provide additional data types and to be more efficient for encoding and decoding. Understanding these types is crucial for effective MongoDB development.
+
+<a name="bson-types"></a>
+### BSON Data Types Overview
+
+Here's a reference table of the most common BSON data types used in MongoDB:
+
+| Type | BSON Type Code | Description | Example |
+|------|---------------|-------------|---------|
+| Double | 1 | 64-bit IEEE 754 floating point | `3.14159` |
+| String | 2 | UTF-8 string | `"Hello"` |
+| Object | 3 | Embedded document | `{ "name": "John" }` |
+| Array | 4 | Array of values | `[1, 2, 3]` |
+| Binary data | 5 | Binary data | `BinData(0, "SGVsbG8=")` |
+| ObjectId | 7 | 12-byte identifier | `ObjectId("5f8d48b88c8d83a657a02a9d")` |
+| Boolean | 8 | Boolean value | `true`, `false` |
+| Date | 9 | Milliseconds since Unix epoch | `ISODate("2023-01-15T14:30:00Z")` |
+| Null | 10 | Null value | `null` |
+| Regular Expression | 11 | Regular expression | `/pattern/i` |
+| JavaScript | 13 | JavaScript code | `function() { return true; }` |
+| Integer (32-bit) | 16 | 32-bit integer | `NumberInt("42")` |
+| Timestamp | 17 | MongoDB internal timestamp | `Timestamp(1601234567, 1)` |
+| Integer (64-bit) | 18 | 64-bit integer | `NumberLong("9223372036854775807")` |
+| Decimal128 | 19 | 128-bit decimal-based floating-point | `NumberDecimal("9.99")` |
+
+<a name="objectid"></a>
+### Working with ObjectId
+
+ObjectId is a 12-byte identifier used as the default value for the `_id` field in MongoDB documents if no value is provided.
+
+**Structure of ObjectId**:
+- 4 bytes: timestamp (seconds since the Unix epoch)
+- 5 bytes: random value
+- 3 bytes: incrementing counter
+
+**In MongoDB Shell**:
+```javascript
+// Create a new ObjectId
+const id = ObjectId();
+print(id);
+
+// Create ObjectId from string
+const idFromString = ObjectId("5f8d48b88c8d83a657a02a9d");
+
+// Get timestamp from ObjectId
+const timestamp = idFromString.getTimestamp();
+print(timestamp);
+
+// Convert ObjectId to string
+const idString = idFromString.toString();
+print(idString);
+
+// Compare ObjectIds
+const id1 = ObjectId();
+const id2 = ObjectId();
+print(id1 < id2);  // Compares based on creation time
+
+// Find document by ObjectId
+db.users.findOne({ _id: ObjectId("5f8d48b88c8d83a657a02a9d") });
+```
+
+**In Python with PyMongo**:
+```python
+from bson.objectid import ObjectId
+from datetime import datetime
+
+# Create a new ObjectId
+id = ObjectId()
+print(id)
+
+# Create ObjectId from string
+id_from_string = ObjectId("5f8d48b88c8d83a657a02a9d")
+
+# Get timestamp from Object# MongoDB: The Comprehensive Guide
 
 ## Table of Contents
 1. [Introduction to NoSQL and MongoDB](#introduction)
@@ -33,7 +111,14 @@
    - [Advanced Python Operations](#python-advanced)
    - [MongoDB and Python Frameworks](#python-frameworks)
    - [Python MongoDB Best Practices](#python-best-practices)
-8. [Schema Design and Best Practices](#schema-design)
+8. [MongoDB Object Types](#mongodb-object-types)
+   - [BSON Data Types Overview](#bson-types)
+   - [Working with ObjectId](#objectid)
+   - [Working with Dates and Timestamps](#dates)
+   - [Arrays and Embedded Documents](#arrays-embedded)
+   - [Numeric Types](#numeric-types)
+   - [Special Types](#special-types)
+9. [Schema Design and Best Practices](#schema-design)
    - [Data Modeling Patterns](#data-modeling)
    - [Performance Optimization](#performance)
    - [Security Best Practices](#security)
