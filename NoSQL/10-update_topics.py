@@ -20,11 +20,9 @@ def update_topics(mongo_collection, name, topics):
         topics (list): A list of topics to associate with the school
 
     Returns:
-        UpdateResult: The result of the update operation containing information
-                      about whether the operation was successful and how many
-                      documents were modified
+        None
     """
-    result = mongo_collection.update_one(
+    mongo_collection.update_many(
         {'name': name},
         {'$set': {'topics': topics}}
     )
