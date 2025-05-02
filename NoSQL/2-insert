@@ -1,4 +1,4 @@
 // Script  that inserts a document in the collection school. DB names comes from CLI
-db.school.insertOne({
+db.school.insert({
   name: "Holberton school"
 })
