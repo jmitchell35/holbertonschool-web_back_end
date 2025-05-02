@@ -189,7 +189,9 @@ MongoDB architecture consists of the following components:
 <a name="installation"></a>
 ### Installation
 
-https://www.mongodb.com/docs/manual/
+For detailed installation instructions for your specific operating system, please refer to the official MongoDB documentation:
+
+[MongoDB Official Documentation](https://www.mongodb.com/docs/manual/)
 
 <a name="mongo-shell"></a>
 ### MongoDB Shell
@@ -286,6 +288,191 @@ MongoDB 4.4 introduced several important changes and enhancements to the mongo s
    mongo --disableJavaScriptProtection
    ```
 
+**MongoDB 4.4 Command Reference**:
+
+MongoDB 4.4 uses the `mongo` shell command (which was later replaced by `mongosh` in MongoDB 5.0). The commands are organized by category:
+
+1. **Connection Commands**:
+   ```javascript
+   // Connect to MongoDB instance
+   connect("mongodb://localhost:27017/mydb")
+   
+   // Authenticate within the shell
+   db.auth("username", "password")
+   ```
+
+2. **Information Commands**:
+   ```javascript
+   // List all available database commands
+   db.listCommands()
+   
+   // List all databases and their statistics
+   db.listDatabases()
+   // or
+   show dbs
+   
+   // List collections in the current database
+   db.listCollections()
+   // or
+   show collections
+   
+   // Return database statistics
+   db.stats()
+   ```
+
+3. **CRUD Operations**:
+   ```javascript
+   // Create Operations
+   db.collection.insertOne()     // Insert a single document
+   db.collection.insertMany()    // Insert multiple documents
+   db.collection.insert()        // Insert one or multiple documents
+   
+   // Read Operations
+   db.collection.find()          // Retrieve documents
+   db.collection.findOne()       // Retrieve a single document
+   db.collection.count()         // Count documents
+   db.collection.distinct()      // Return distinct values for a field
+   
+   // Update Operations
+   db.collection.updateOne()     // Update a single document
+   db.collection.updateMany()    // Update multiple documents
+   db.collection.replaceOne()    // Replace a document entirely
+   db.collection.findAndModify() // Update and return a document
+   
+   // Delete Operations
+   db.collection.deleteOne()     // Delete a single document
+   db.collection.deleteMany()    // Delete multiple documents
+   db.collection.remove()        // Remove documents from a collection
+   ```
+
+4. **Index Commands**:
+   ```javascript
+   // Create an index
+   db.collection.createIndex({ field: 1 })
+   
+   // List all indexes for a collection
+   db.collection.getIndexes()
+   
+   // Remove a specific index
+   db.collection.dropIndex("index_name")
+   
+   // Remove all indexes (except _id)
+   db.collection.dropIndexes()
+   
+   // Get the plan cache for a collection
+   db.collection.getPlanCache()
+   ```
+
+5. **Administration Commands**:
+   ```javascript
+   // Create a collection with options
+   db.createCollection("users", { capped: true, size: 10000 })
+   
+   // Drop the current database
+   db.dropDatabase()
+   
+   // Drop a collection
+   db.collection.drop()
+   
+   // Create a new role
+   db.createRole({
+     role: "readWrite",
+     privileges: [...],
+     roles: [...]
+   })
+   ```
+
+6. **Replication Commands**:
+   ```javascript
+   // Prevent a member from seeking election as primary
+   db.adminCommand({ replSetFreeze: 60 })  // Freeze for 60 seconds
+   
+   // Return status of replica set
+   db.adminCommand({ replSetGetStatus: 1 })
+   // or
+   rs.status()
+   
+   // Initialize a replica set
+   db.adminCommand({ replSetInitiate: config })
+   // or
+   rs.initiate(config)
+   
+   // Reconfigure replica set
+   db.adminCommand({ replSetReconfig: config })
+   // or
+   rs.reconfig(config)
+   
+   // Set the member to replicate from
+   db.adminCommand({ replSetSyncFrom: "hostname:port" })
+   // or
+   rs.syncFrom("hostname:port")
+   ```
+
+7. **Aggregation Commands**:
+   ```javascript
+   // Perform aggregation operations
+   db.collection.aggregate([
+     { $match: { status: "active" } },
+     { $group: { _id: "$category", total: { $sum: "$amount" } } }
+   ])
+   
+   // Perform map-reduce operations
+   db.collection.mapReduce(
+     mapFunction,
+     reduceFunction,
+     { out: "results" }
+   )
+   
+   // Group operations (deprecated in 4.4)
+   // This command is available in 4.4 but was removed in 5.0
+   db.collection.group({
+     key: { category: 1 },
+     reduce: function(obj, result) { result.count++; },
+     initial: { count: 0 }
+   })
+   ```
+
+8. **Bulk Operation Commands**:
+   ```javascript
+   // Create an ordered bulk operation object
+   var bulk = db.collection.initializeOrderedBulkOp()
+   bulk.insert({ item: "abc" })
+   bulk.update({ item: "xyz" }, { $set: { price: 10.99 } })
+   bulk.execute()
+   
+   // Create an unordered bulk operation object
+   var bulk = db.collection.initializeUnorderedBulkOp()
+   bulk.insert({ item: "def" })
+   bulk.execute()
+   ```
+
+9. **Running Commands Directly**:
+   ```javascript
+   // List databases
+   db.runCommand({ listDatabases: 1 })
+   
+   // Get collection stats
+   db.runCommand({ collStats: "collection_name" })
+   
+   // Authenticate
+   db.runCommand({ 
+     authenticate: 1, 
+     user: "username", 
+     pwd: "password" 
+   })
+   ```
+
+**Deprecated Features in MongoDB 4.4**:
+
+1. **Deprecated Methods**:
+   - `db.collection.group()` - Deprecated in MongoDB 4.4 and removed in 5.0, use aggregation with `$group` instead
+   - `gperftools cpu profiler` - No longer supported in 4.4
+
+2. **Command Operation Changes**:
+   - `replSetGetStatus` and `rs.status()` remove several deprecated fields from output
+   - `findAndModify` now errors if the specified query, sort, or projection is not a document
+   - `listIndexes` and `db.collection.getIndexes()` no longer return the namespace `ns` field in index specifications
+
 **Notable Changes and Deprecations**:
 
 1. **Removed Fields in Responses**:
@@ -340,7 +527,7 @@ try {
 4. Consider using environment variables for credentials instead of command line
 5. Keep scripts compatible with both 4.4 and older versions when necessary by avoiding 4.4-specific features in critical scripts
 
-**Note**: MongoDB 4.4 shell was the last version of the legacy shell. Starting with MongoDB 5.0, the new MongoDB Shell (mongosh) became the recommended shell interface. The mongosh provides an even more modern experience with additional features beyond what the 4.4 shell offers.
+**Note**: MongoDB 4.4 shell (`mongo`) was the last version of the legacy shell. Starting with MongoDB 5.0, the new MongoDB Shell (`mongosh`) became the recommended shell interface. The `mongosh` provides an even more modern experience with additional features beyond what the 4.4 shell offers.
 
 <a name="mongo-shell-scripts"></a>
 ### MongoDB Shell Scripts with CLI Arguments
