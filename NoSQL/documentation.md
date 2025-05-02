@@ -14,6 +14,8 @@
 4. [Getting Started with MongoDB](#getting-started)
    - [Installation](#installation)
    - [MongoDB Shell](#mongo-shell)
+   - [MongoDB 4.4 Shell Specifics](#mongo-shell-4-4)
+   - [MongoDB Shell Scripts with CLI Arguments](#mongo-shell-scripts)
    - [Basic Database Operations](#basic-db-operations)
 5. [CRUD Operations](#crud-operations)
    - [Create](#create-operations)
@@ -187,23 +189,7 @@ MongoDB architecture consists of the following components:
 <a name="installation"></a>
 ### Installation
 
-**Linux (Ubuntu)**:
-https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
-
-**macOS (with Homebrew)**:
-```bash
-# Install MongoDB Community Edition
-brew tap mongodb/brew
-brew install mongodb-community
-
-# Start MongoDB service
-brew services start mongodb-community
-```
-
-**Windows**:
-1. Download the MongoDB installer from the MongoDB website
-2. Run the installer and follow the prompts
-3. MongoDB can be run as a service or started manually
+https://www.mongodb.com/docs/manual/
 
 <a name="mongo-shell"></a>
 ### MongoDB Shell
@@ -242,6 +228,295 @@ help
 // Exit the shell
 exit
 ```
+
+<a name="mongo-shell-4-4"></a>
+### MongoDB 4.4 Shell Specifics
+
+MongoDB 4.4 introduced several important changes and enhancements to the mongo shell. This section covers the features and changes specific to version 4.4 of the shell.
+
+**New Features in MongoDB 4.4 Shell**:
+
+1. **Enhanced Usability**:
+   - Syntax highlighting for better code readability
+   - Command auto-completion for faster development
+   - Improved error messages that are easier to understand
+
+2. **Authentication Enhancements**:
+   ```javascript
+   // MongoDB 4.4 adds support for MONGODB-AWS authentication mechanism
+   // for connecting to MongoDB Atlas clusters
+   mongo "mongodb+srv://cluster0.example.mongodb.net/mydb" \
+     --username myuser \
+     --password mypassword \
+     --authenticationMechanism MONGODB-AWS \
+     --awsSessionToken "your-aws-session-token"
+   ```
+
+3. **TLS/SSL Improvements**:
+   ```javascript
+   // MongoDB 4.4 logs warnings for X.509 certificates nearing expiry (within 30 days)
+   mongo --tls --tlsCertificateKeyFile client.pem --tlsCAFile ca.pem
+   ```
+
+4. **Projection Enhancements**:
+   ```javascript
+   // MongoDB 4.4 supports aggregation expressions in find projections
+   db.inventory.find({}, {
+     item: 1,
+     discountPrice: { $multiply: ["$price", 0.8] }
+   })
+   
+   // Support for $slice in both inclusion and exclusion projections
+   db.inventory.find({}, {
+     _id: 0,
+     name: 1,
+     "colors": { $slice: 2 }  // Only returns first 2 elements of the colors array
+   })
+   ```
+
+5. **JavaScript Execution Control**:
+   ```javascript
+   // In MongoDB 4.4, the default behavior prevents immediate execution of
+   // JavaScript functions in documents (protection against injection)
+   // This example shows the default behavior:
+   db.test.findOne({fn: function() { return 'Hello'; }})
+   // Result: { "fn" : { "$code" : "function() { return 'Hello'; }" } }
+   
+   // To disable this protection (not recommended):
+   mongo --disableJavaScriptProtection
+   ```
+
+**Notable Changes and Deprecations**:
+
+1. **Removed Fields in Responses**:
+   ```javascript
+   // The namespace (ns) field is no longer returned in index specifications
+   // Before MongoDB 4.4:
+   // { "v" : 2, "key" : { "_id" : 1 }, "name" : "_id_", "ns" : "test.users" }
+   
+   // In MongoDB 4.4:
+   // { "v" : 2, "key" : { "_id" : 1 }, "name" : "_id_" }
+   ```
+
+2. **Environment Variables for Authentication**:
+   ```javascript
+   // MongoDB 4.4 supports setting credentials via environment variables
+   // In bash:
+   export MONGO_USERNAME="admin"
+   export MONGO_PASSWORD="secret"
+   export MONGO_AUTHSOURCE="admin"
+   
+   // Then connect without specifying credentials on command line
+   mongo --host mongodb0.example.com:27017
+   ```
+
+3. **Compatibility Changes**:
+   - MongoDB 4.4 adds more detailed logging of read and write concern provenance
+   - Improved error messages and operational logs
+   - New term field in replica set configuration for improved consensus mechanisms
+
+**Scripting Enhancements**:
+
+```javascript
+// MongoDB 4.4 provides improved error handling in shell scripts
+try {
+  db.collection.updateOne(
+    { _id: ObjectId("5f8d48b88c8d83a657a02a9d") },
+    { $set: { status: "active" } }
+  );
+} catch (error) {
+  print("Error occurred: " + error.message);
+  // More detailed error information available in 4.4
+  print("Error code: " + error.code);
+  print("Error name: " + error.name);
+}
+```
+
+**Best Practices for MongoDB 4.4 Shell**:
+
+1. Use the enhanced shell features for more productive development
+2. Take advantage of the improved projection capabilities
+3. Pay attention to security warnings, especially for TLS certificate expiration
+4. Consider using environment variables for credentials instead of command line
+5. Keep scripts compatible with both 4.4 and older versions when necessary by avoiding 4.4-specific features in critical scripts
+
+**Note**: MongoDB 4.4 shell was the last version of the legacy shell. Starting with MongoDB 5.0, the new MongoDB Shell (mongosh) became the recommended shell interface. The mongosh provides an even more modern experience with additional features beyond what the 4.4 shell offers.
+
+<a name="mongo-shell-scripts"></a>
+### MongoDB Shell Scripts with CLI Arguments
+
+When writing MongoDB shell scripts that accept command-line arguments, you can process data from the CLI in several ways:
+
+**Basic Approach: Using Command Line Arguments**:
+```javascript
+// save as insert_doc.js
+// The first two elements are "mongo" and the script name
+// User arguments start from index 2
+var name = process.argv[2];
+var age = parseInt(process.argv[3]);
+var email = process.argv[4];
+
+// Create document using CLI arguments
+var document = {
+    name: name,
+    age: age,
+    email: email,
+    created_at: new Date()
+};
+
+// Print the document to verify
+print("Inserting document:");
+printjson(document);
+
+// Insert into collection
+db.users.insertOne(document);
+
+print("Document inserted successfully!");
+```
+
+Run this script with:
+```bash
+mongo mydatabase insert_doc.js "John Doe" 30 "john@example.com"
+```
+
+**Working with JSON from CLI**:
+```javascript
+// save as insert_json.js
+// Get the JSON string from command line
+var jsonArg = process.argv[2];
+
+try {
+    // Parse the JSON string into an object
+    var document = JSON.parse(jsonArg);
+    
+    // Add timestamp if needed
+    document.created_at = new Date();
+    
+    // Print the document to verify
+    print("Inserting document:");
+    printjson(document);
+    
+    // Insert into collection
+    db.users.insertOne(document);
+    
+    print("Document inserted successfully!");
+} catch (e) {
+    print("Error parsing JSON: " + e);
+    quit(1);
+}
+```
+
+Run it with a JSON string:
+```bash
+mongo mydatabase insert_json.js '{"name":"John Doe","age":30,"email":"john@example.com"}'
+```
+
+**Reading from a File**:
+```javascript
+// save as insert_from_file.js
+// Get filename from command line
+var filename = process.argv[2];
+
+try {
+    // Load the file content
+    var fileContent = cat(filename);
+    
+    // Parse the JSON
+    var documents = JSON.parse(fileContent);
+    
+    // Handle both single document and array of documents
+    if (!Array.isArray(documents)) {
+        documents = [documents];
+    }
+    
+    // Print count
+    print("Inserting " + documents.length + " documents");
+    
+    // Insert documents
+    var result = db.users.insertMany(documents);
+    
+    print("Inserted " + result.insertedCount + " documents successfully!");
+} catch (e) {
+    print("Error: " + e);
+    quit(1);
+}
+```
+
+**Using MongoDB Shell Options**:
+```bash
+# Execute JavaScript directly from the command line
+mongo mydatabase --eval "db.users.insertOne({name: 'John Doe', age: 30, created_at: new Date()})"
+```
+
+**Advanced Pattern: Command Line Options Parser**:
+```javascript
+// save as advanced_insert.js
+// Parse command line options
+var options = {};
+for (var i = 2; i < process.argv.length; i++) {
+    var arg = process.argv[i];
+    
+    // Handle options in --key=value format
+    if (arg.startsWith("--")) {
+        var parts = arg.substring(2).split("=");
+        if (parts.length === 2) {
+            var key = parts[0];
+            var value = parts[1];
+            
+            // Try to parse numbers and booleans
+            if (!isNaN(value)) {
+                value = Number(value);
+            } else if (value === "true" || value === "false") {
+                value = (value === "true");
+            }
+            
+            options[key] = value;
+        }
+    }
+}
+
+// Print parsed options
+print("Options:");
+printjson(options);
+
+// Check for required fields
+if (!options.collection) {
+    print("Error: --collection option is required");
+    print("Usage: mongo database script.js --collection=users --name=\"John Doe\" --age=30");
+    quit(1);
+}
+
+// Create document from options, excluding certain keys
+var document = {};
+Object.keys(options).forEach(function(key) {
+    if (key !== "collection" && key !== "database") {
+        document[key] = options[key];
+    }
+});
+
+// Add timestamp
+document.created_at = new Date();
+
+// Print the document
+print("\nInserting document into " + options.collection + ":");
+printjson(document);
+
+// Insert the document
+var result = db[options.collection].insertOne(document);
+printjson(result);
+```
+
+Run with named parameters:
+```bash
+mongo mydatabase advanced_insert.js --collection=users --name="John Doe" --age=30 --active=true
+```
+
+**Best Practices for CLI Scripts**:
+- Always validate input data before inserting into the database
+- Use try-catch blocks to handle errors gracefully
+- Provide meaningful error messages to identify issues
+- Set appropriate exit codes when scripts fail
+- Add proper documentation for script usage
 
 <a name="basic-db-operations"></a>
 ### Basic Database Operations
