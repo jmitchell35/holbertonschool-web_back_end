@@ -1,0 +1,2 @@
+// Script to list Mongo databases
+db.school.find()
