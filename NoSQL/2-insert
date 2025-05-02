@@ -1,6 +1,4 @@
 // Script  that inserts a document in the collection school. DB names comes from CLI
-var database = process.argv[1];
-
-db.database.insertOne({
-  name: "Holberton School"
+db.school.insertOne({
+  name: "Holberton school"
 })
