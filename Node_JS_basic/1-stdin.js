@@ -7,8 +7,7 @@ function prompt() {
   process.stdin.on('readable', function() {
     var chunk = process.stdin.read();
     if (chunk !== null) {
-      chunk = chunk.trim();
-      displayMessage(`Your name is ${chunk}`);
+      displayMessage(`Your name is: ${chunk.trim()}`);
     }
   });
 
@@ -16,7 +15,5 @@ function prompt() {
     displayMessage('This important software is now closing');
   });
 }
-
-prompt();
 
 module.exports = {};
