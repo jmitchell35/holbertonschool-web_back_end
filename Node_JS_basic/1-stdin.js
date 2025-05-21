@@ -19,4 +19,4 @@ function prompt() {
 
 prompt();
 
-module.exports = prompt;
+module.exports = {};
