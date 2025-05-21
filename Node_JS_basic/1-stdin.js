@@ -16,4 +16,6 @@ function prompt() {
   });
 }
 
+prompt();
+
 module.exports = {};
