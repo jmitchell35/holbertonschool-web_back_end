@@ -46,7 +46,7 @@ function countStudents(path) {
       }
     });
 
-    readStream.on('error', (err) => {
+    readStream.on('error', () => {
       reject(new Error('Cannot load the database'));
     });
   });
