@@ -5,7 +5,7 @@ const http = require('node:http');
 // req as request, res as response
 const app = http.createServer((_req, res) => {
   res.statusCode = 200;
-  res.setHeader('Content-Type', 'texst/plain');
+  res.setHeader('Content-Type', 'text/plain');
   res.write('Hello Holberton School!');
   res.end();
 });
