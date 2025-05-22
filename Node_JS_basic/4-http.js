@@ -13,3 +13,5 @@ const app = http.createServer((_req, res) => {
 const port = 1245;
 
 app.listen(port);
+
+module.exports = app;
