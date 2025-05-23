@@ -103,7 +103,12 @@ function countStudents(path) {
           }
         }
 
-        resolve(); // Explicitly resolve when done
+        resolve(`Number of students: ${students.length}\n` +
+          Object.entries(studentsByField)
+            .map(([field, students]) =>
+              `Number of students in ${field}: ${students.length}. List: ${students.join(', ')}`
+            )
+            .join('\n')); // Explicitly resolve when done + "pure" function : logs AND returns data
       } catch (error) {
         reject(new Error('Cannot load the database'));
       }
