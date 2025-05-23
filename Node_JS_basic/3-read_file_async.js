@@ -1,4 +1,3 @@
-const fs = require('node:fs');
 /*
   Two different approaches although one only is accepted by the checker :
   1 - use async function processing the read file stream, which will return a promise
@@ -61,6 +60,8 @@ const fs = require('node:fs');
       }
   2 - As below, use explicit Promise constructor (without async/await)
 */
+const fs = require('node:fs');
+
 function countStudents(path) {
   return new Promise((resolve, reject) => {
     const readStream = fs.createReadStream(path, { encoding: 'utf8' });
