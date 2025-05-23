@@ -11,13 +11,13 @@ app.get('/', (_req, res) => {
 });
 
 app.get('/students', async (_req, res) => {
-    try {
-      const students = await countStudents(process.argv[2]);
-      res.send(`This is the list of our students\n${students}`);
-    } catch (_error) {
-      res.send('Cannot load the database');
-    }
-})
+  try {
+    const students = await countStudents(process.argv[2]);
+    res.send(`This is the list of our students\n${students}`);
+  } catch (_error) {
+    res.send('Cannot load the database');
+  }
+});
 
 app.listen(port);
 
