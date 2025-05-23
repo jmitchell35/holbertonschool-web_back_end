@@ -18,10 +18,10 @@ const app = http.createServer(async (req, res) => {
   if (req.url === '/students') {
     res.write('This is the list of our students\n');
     try {
-      let students = await countStudents(process.argv[2]);
+      const students = await countStudents(process.argv[2]);
       res.write(students);
     } catch (_error) {
-      res.write('Cannot load the database')
+      res.write('Cannot load the database');
     }
   }
   res.end();
