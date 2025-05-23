@@ -7,7 +7,9 @@ export default class StudentsController {
 
       let output = 'This is the list of our students\n';
 
-      // Sort fields alphabetically (case insensitive)
+      /*  Sort fields alphabetically (case insensitive)
+          Linter tip: declare arrow function prior to using it inside the sort method
+      */
       const sortAlphabetically = (a, b) => a.toLowerCase().localeCompare(b.toLowerCase());
       const sortedFields = Object.keys(studentsByField).sort(sortAlphabetically);
 
