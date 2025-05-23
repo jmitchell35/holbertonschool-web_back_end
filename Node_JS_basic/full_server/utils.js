@@ -41,7 +41,7 @@ export default function readDatabase(path) {
           }
         }
 
-        resolve(studentsByField) // from task 3 edited so that it returns the full object
+        resolve(studentsByField); // from task 3 edited so that it returns the full object
       } catch (error) {
         reject(new Error('Cannot load the database'));
       }
